@@ -5,6 +5,9 @@ input: fixtures/t01_coverage
 pred_file: pick.csv
 params:
   k: 30
+  review_budget: 3
+  unknown_match_probability: 0.5
+  go_min_estimated_weighted_coverage: 0.8
   budgets_to_try:
   - 10
   - 20

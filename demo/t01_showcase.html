@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="T01 Coverage Planner showcase using synthetic lab fixtures and metadata-only planning proxies.">
+  <title>T01 Coverage Planner | Showcase</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17243b;
+      --muted: #64748b;
+      --line: #dce5ef;
+      --paper: #ffffff;
+      --canvas: #edf2f8;
+      --navy: #10233f;
+      --blue: #2874d0;
+      --cyan: #31b6c8;
+      --green: #17836b;
+      --amber: #a96812;
+      --red: #b44442;
+      --shadow: 0 16px 42px rgba(27, 47, 76, .09);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.5 "Segoe UI", Arial, sans-serif;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 40px));
+      margin: 32px auto;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 38px 42px;
+      border-radius: 22px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 12%, rgba(49, 182, 200, .35), transparent 25%),
+        linear-gradient(125deg, #10233f 0%, #173c66 62%, #176f85 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #a9dce7;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 10px; font-size: clamp(30px, 5vw, 48px); line-height: 1.08; }
+    h2 { margin-bottom: 5px; font-size: 22px; }
+    h3 { margin-bottom: 8px; font-size: 16px; }
+    .hero p { max-width: 720px; margin-bottom: 0; color: #d4e5f3; }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 22px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 29px;
+      padding: 5px 11px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      background: rgba(255,255,255,.09);
+      color: #f3f8fc;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 26px 2px 13px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .section-label::after { height: 1px; flex: 1; background: #d5deea; content: ""; }
+
+    .grid { display: grid; gap: 16px; }
+    .grid.kpis { grid-template-columns: repeat(4, 1fr); }
+    .grid.two { grid-template-columns: 1.1fr .9fr; }
+    .grid.equal { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      min-width: 0;
+      padding: 22px;
+      border: 1px solid rgba(201, 214, 229, .85);
+      border-radius: 17px;
+      background: var(--paper);
+      box-shadow: 0 7px 22px rgba(27, 47, 76, .045);
+    }
+
+    .kpi { min-height: 130px; }
+    .kpi .label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .kpi .value { display: block; margin: 7px 0 2px; color: var(--navy); font-size: 32px; font-weight: 800; letter-spacing: -.04em; }
+    .kpi .sub { color: var(--muted); font-size: 12px; }
+
+    .card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 17px;
+    }
+
+    .card-head p { margin-bottom: 0; color: var(--muted); font-size: 13px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #fff4df;
+      color: #89550e;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 2px 0 15px; color: var(--muted); font-size: 12px; }
+    .legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .swatch { width: 10px; height: 10px; border-radius: 3px; }
+    .swatch.random { background: var(--blue); }
+    .swatch.poc { background: var(--cyan); }
+
+    .chart { width: 100%; height: auto; overflow: visible; }
+    .chart text { font-family: "Segoe UI", Arial, sans-serif; fill: #65758b; font-size: 12px; }
+    .chart .value-label { fill: var(--ink); font-size: 14px; font-weight: 800; }
+    .chart .axis { stroke: #ccd7e4; stroke-width: 1; }
+    .chart .gridline { stroke: #e8edf3; stroke-width: 1; }
+
+    .metric-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+    .metric-chip { padding: 11px 12px; border: 1px solid var(--line); border-radius: 12px; background: #f8fafc; }
+    .metric-chip small { display: block; color: var(--muted); font-size: 11px; }
+    .metric-chip strong { color: var(--navy); font-size: 17px; }
+
+    .callout {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-left: 3px solid var(--amber);
+      border-radius: 8px;
+      background: #fff9eb;
+      color: #684d25;
+      font-size: 12px;
+    }
+
+    .budget-table, .review-table { width: 100%; border-collapse: collapse; }
+    .budget-table th, .budget-table td, .review-table th, .review-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #e8edf3;
+      text-align: left;
+      vertical-align: top;
+    }
+    .budget-table th, .review-table th { color: var(--muted); font-size: 11px; font-weight: 800; }
+    .budget-table td, .review-table td { font-size: 13px; }
+    .budget-table td:first-child { color: var(--navy); font-weight: 800; }
+    .budget-table tr:last-child td, .review-table tr:last-child td { border-bottom: 0; }
+    .mini-bar { width: 100%; height: 7px; margin-top: 5px; overflow: hidden; border-radius: 8px; background: #e8eef5; }
+    .mini-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan)); }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 9px;
+      margin-top: 13px;
+    }
+    .flow-step {
+      position: relative;
+      padding: 12px 10px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #f8fafc;
+      text-align: center;
+    }
+    .flow-step b { display: block; color: var(--navy); font-size: 12px; }
+    .flow-step small { color: var(--muted); font-size: 10px; }
+    .flow-step:not(:last-child)::after {
+      position: absolute;
+      top: 50%;
+      right: -9px;
+      z-index: 1;
+      width: 8px;
+      height: 8px;
+      border-top: 2px solid #8da1b7;
+      border-right: 2px solid #8da1b7;
+      content: "";
+      transform: translateY(-50%) rotate(45deg);
+    }
+
+    .status-banner {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 14px;
+      padding: 15px 16px;
+      border: 1px solid #f0c7c4;
+      border-radius: 13px;
+      background: #fff3f1;
+    }
+    .status-icon {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      place-items: center;
+      border-radius: 50%;
+      background: #f8dedb;
+      color: var(--red);
+      font-size: 18px;
+      font-weight: 900;
+    }
+    .status-banner strong { display: block; color: #8d302f; font-size: 18px; }
+    .status-banner span { color: #795b5a; font-size: 12px; }
+
+    .review-table .decision { font-weight: 800; }
+    .approved { color: var(--green); }
+    .escalated { color: var(--amber); }
+    .clip-list { color: #516278; font-size: 12px; }
+
+    .shot-list { display: grid; gap: 10px; }
+    .shot {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      align-items: start;
+      gap: 11px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+    .rank {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 9px;
+      background: #eaf3ff;
+      color: #205b9d;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .shot strong { display: block; color: var(--navy); font-size: 13px; }
+    .shot p { margin: 3px 0 0; color: var(--muted); font-size: 11px; }
+    .shot .cost { color: var(--muted); font-size: 11px; text-align: right; white-space: nowrap; }
+
+    .qa-list { display: grid; gap: 9px; }
+    .qa-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8edf3; }
+    .qa-row:last-child { border-bottom: 0; }
+    .qa-row span { color: #44566d; font-size: 13px; }
+    .qa-row strong { color: var(--green); font-size: 13px; white-space: nowrap; }
+    .limitations { margin: 12px 0 0; padding-left: 19px; color: #52647a; font-size: 12px; }
+    .limitations li { margin: 6px 0; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 18px 4px 0;
+      color: #728198;
+      font-size: 11px;
+    }
+
+    @media (max-width: 800px) {
+      .grid.kpis { grid-template-columns: repeat(2, 1fr); }
+      .grid.two, .grid.equal { grid-template-columns: 1fr; }
+      .hero { padding: 30px 25px; }
+      .flow { grid-template-columns: 1fr; }
+      .flow-step:not(:last-child)::after { top: auto; right: 50%; bottom: -9px; transform: translateX(50%) rotate(135deg); }
+      .page { width: min(100% - 20px, 680px); margin: 12px auto; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; margin: 0; }
+      .hero, .card { box-shadow: none; }
+      .section-label { margin-top: 17px; }
+      .card, .hero { break-inside: avoid; }
+      @page { size: landscape; margin: 12mm; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Data Governance &amp; Privacy · Day 06</p>
+      <h1>T01 Coverage Planner</h1>
+      <p>Chọn clip theo độ phủ target có trọng số, có bước human review và capture plan cho các vùng dữ liệu còn thiếu.</p>
+      <div class="hero-meta">
+        <span class="pill">Bài cá nhân · IND-03140</span>
+        <span class="pill">Owner / reviewer: Nguyễn Viết Tiến</span>
+        <span class="pill">Seed 42 · Offline · Synthetic fixtures</span>
+      </div>
+    </header>
+
+    <div class="section-label">Tóm tắt lần chạy</div>
+    <section class="grid kpis" aria-label="Run summary">
+      <article class="card kpi">
+        <span class="label">Candidate pool</span>
+        <strong class="value">120</strong>
+        <span class="sub">15 target cells · main pool</span>
+      </article>
+      <article class="card kpi">
+        <span class="label">Selection budget</span>
+        <strong class="value">K = 30</strong>
+        <span class="sub">30 clip_id duy nhất</span>
+      </article>
+      <article class="card kpi">
+        <span class="label">PoC weighted coverage</span>
+        <strong class="value">0.8646</strong>
+        <span class="sub">Planning proxy · unknown = 0.5</span>
+      </article>
+      <article class="card kpi">
+        <span class="label">Human review</span>
+        <strong class="value">5</strong>
+        <span class="sub">3 approve · 2 escalate · audit events</span>
+      </article>
+    </section>
+
+    <div class="section-label">01 · Baseline so với PoC</div>
+    <section class="grid two">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <h2>Weighted coverage@K</h2>
+            <p>Cùng pool, K=30, seed=42 · chỉ số ước lượng từ metadata</p>
+          </div>
+          <span class="badge">PLANNING PROXY</span>
+        </div>
+        <div class="legend">
+          <span><i class="swatch random"></i>Random Baseline</span>
+          <span><i class="swatch poc"></i>Greedy weighted PoC</span>
+        </div>
+        <svg class="chart" viewBox="0 0 600 270" role="img" aria-label="Biểu đồ proxy coverage: random baseline 0.3750, PoC 0.8646">
+          <line class="gridline" x1="72" y1="30" x2="568" y2="30"/>
+          <line class="gridline" x1="72" y1="75" x2="568" y2="75"/>
+          <line class="gridline" x1="72" y1="120" x2="568" y2="120"/>
+          <line class="gridline" x1="72" y1="165" x2="568" y2="165"/>
+          <line class="axis" x1="72" y1="210" x2="568" y2="210"/>
+          <text x="35" y="214">0.0</text>
+          <text x="35" y="169">0.25</text>
+          <text x="35" y="124">0.50</text>
+          <text x="35" y="79">0.75</text>
+          <text x="35" y="34">1.0</text>
+          <rect x="165" y="142.5" width="112" height="67.5" rx="9" fill="#2874d0"/>
+          <rect x="360" y="54.4" width="112" height="155.6" rx="9" fill="#31b6c8"/>
+          <text class="value-label" x="221" y="132" text-anchor="middle">0.3750</text>
+          <text class="value-label" x="416" y="44" text-anchor="middle">0.8646</text>
+          <text x="221" y="237" text-anchor="middle">Random Baseline</text>
+          <text x="416" y="237" text-anchor="middle">Greedy weighted PoC</text>
+        </svg>
+        <div class="metric-pair">
+          <div class="metric-chip"><small>Hard targets covered confidently</small><strong>1/4 → 4/4</strong></div>
+          <div class="metric-chip"><small>Selection cost (metadata)</small><strong>232 → 136 min</strong></div>
+        </div>
+        <div class="callout"><strong>Lưu ý:</strong> Đây không phải official Weighted Coverage@K. Checkout chưa có instructor ground truth, nên không diễn giải proxy như độ chính xác đã xác minh.</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <h2>Coverage theo ngân sách K</h2>
+            <p>Greedy weighted marginal coverage · unknown-match probability = 0.5</p>
+          </div>
+          <span class="badge">METADATA ONLY</span>
+        </div>
+        <table class="budget-table">
+          <thead><tr><th>K</th><th>Weighted coverage proxy</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>10</td>
+              <td>0.7396<div class="mini-bar"><span style="width:73.96%"></span></div></td>
+              <td>58 min</td>
+            </tr>
+            <tr>
+              <td>20</td>
+              <td>0.8646<div class="mini-bar"><span style="width:86.46%"></span></div></td>
+              <td>98 min</td>
+            </tr>
+            <tr>
+              <td>30</td>
+              <td>0.8646<div class="mini-bar"><span style="width:86.46%"></span></div></td>
+              <td>136 min</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">Từ K=20 đến K=30, proxy không tăng; phần chi phí tăng thêm không làm tăng coverage proxy trên pool hiện tại.</div>
+        <h3 style="margin-top:20px">Pipeline có human review</h3>
+        <div class="flow" aria-label="load, process, rank, review, decide">
+          <div class="flow-step"><b>LOAD</b><small>manifest + data</small></div>
+          <div class="flow-step"><b>PROCESS</b><small>metadata</small></div>
+          <div class="flow-step"><b>RANK</b><small>weighted gain</small></div>
+          <div class="flow-step"><b>REVIEW</b><small>human decisions</small></div>
+          <div class="flow-step"><b>DECIDE</b><small>GO / HOLD / REWORK</small></div>
+        </div>
+      </article>
+    </section>
+
+    <div class="section-label">02 · Human-in-the-loop &amp; quyết định</div>
+    <section class="grid two">
+      <article class="card">
+        <div class="status-banner">
+          <div class="status-icon">!</div>
+          <div>
+            <strong>REWORK · CANDIDATE_POOL_GAP</strong>
+            <span>Coverage proxy 0.8646 đạt ngưỡng 0.8, nhưng C15 không có candidate tương thích.</span>
+          </div>
+        </div>
+        <table class="review-table">
+          <thead><tr><th>Hạng mục</th><th>Quyết định</th><th>Ghi chú</th></tr></thead>
+          <tbody>
+            <tr><td class="clip-list">clip_115 · C10</td><td class="decision approved">APPROVE</td><td>Giữ clip đã chọn</td></tr>
+            <tr><td class="clip-list">clip_108 · C09</td><td class="decision approved">APPROVE</td><td>Giữ clip đã chọn</td></tr>
+            <tr><td class="clip-list">clip_098 · C11</td><td class="decision approved">APPROVE</td><td>Giữ clip đã chọn</td></tr>
+            <tr><td class="clip-list">C13</td><td class="decision escalated">ESCALATE</td><td>verify_metadata · clip_093</td></tr>
+            <tr><td class="clip-list">C15</td><td class="decision escalated">ESCALATE</td><td>capture_new_clip · giữ REWORK</td></tr>
+          </tbody>
+        </table>
+        <div class="callout">C13 vẫn là coverage chưa chắc chắn cho đến khi metadata của clip_093 được xác minh độc lập. Audit ghi 5 quyết định; escalation không tự thay đổi dữ liệu hay tạo candidate.</div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <h2>Capture plan ưu tiên</h2>
+            <p>Đề xuất quay/xác minh từ shot list sinh bởi pipeline</p>
+          </div>
+          <span class="badge">3 ACTIONS</span>
+        </div>
+        <div class="shot-list">
+          <div class="shot">
+            <span class="rank">1</span>
+            <div><strong>C13 · Xác minh metadata</strong><p>Urban / fog / night / pedestrian · gợi ý clip_093</p></div>
+            <span class="cost">12 min<br>metadata</span>
+          </div>
+          <div class="shot">
+            <span class="rank">2</span>
+            <div><strong>C15 · Quay clip mới</strong><p>Alley / rain / dusk / pedestrian · 0 candidate phù hợp</p></div>
+            <span class="cost">Chưa<br>ước tính</span>
+          </div>
+          <div class="shot">
+            <span class="rank">3</span>
+            <div><strong>C09 · Quay clip dự phòng</strong><p>Hard target hiện chỉ có một exact candidate</p></div>
+            <span class="cost">Chưa<br>ước tính</span>
+          </div>
+        </div>
+        <div class="callout">12 phút là cost metadata của candidate gợi ý, không phải báo giá quay thực tế. Chi phí quay clip mới chưa có dữ liệu nên để “chưa ước tính”.</div>
+      </article>
+    </section>
+
+    <div class="section-label">03 · Kiểm chứng &amp; giới hạn</div>
+    <section class="grid equal">
+      <article class="card">
+        <div class="card-head">
+          <div><h2>Kiểm thử quy trình</h2><p>Kết quả validation trong workspace</p></div>
+          <span class="badge" style="background:#e8f7f1;color:#176e5b">PASS</span>
+        </div>
+        <div class="qa-list">
+          <div class="qa-row"><span>Toàn bộ pytest suite</span><strong>0 failed</strong></div>
+          <div class="qa-row"><span>Unit tests T01</span><strong>8 passed</strong></div>
+          <div class="qa-row"><span>Manifest fixtures</span><strong>14 / 14 valid</strong></div>
+          <div class="qa-row"><span>Preflight</span><strong>0 fail · 2 optional warnings</strong></div>
+          <div class="qa-row"><span>Main / Baseline / Holdout picks</span><strong>30 / 30 / 6 unique IDs</strong></div>
+        </div>
+      </article>
+      <article class="card">
+        <div class="card-head">
+          <div><h2>Giới hạn cần nói rõ</h2><p>Không biến kết quả nội bộ thành tuyên bố vượt quá bằng chứng</p></div>
+        </div>
+        <ul class="limitations">
+          <li>Chỉ dùng synthetic fixtures; không dùng dữ liệu thật.</li>
+          <li>Không có <code>gt/verified_tags.csv</code>; official metrics chưa được tính.</li>
+          <li>Unknown=0.5 là giả định lập kế hoạch, chưa hiệu chuẩn bằng nhãn.</li>
+          <li>Greedy không phạt unknown chưa được chạy thành ablation riêng.</li>
+          <li>C15 chưa được phủ; quyết định REWORK giữ nguyên cho tới khi có candidate hợp lệ.</li>
+        </ul>
+      </article>
+    </section>
+
+    <footer>
+      <span>Nguồn: artifacts T01 sinh trong workspace · seed 42 · dữ liệu synthetic</span>
+      <span>Coverage numbers are planning proxies, not official evaluation results.</span>
+    </footer>
+  </main>
+</body>
+</html>

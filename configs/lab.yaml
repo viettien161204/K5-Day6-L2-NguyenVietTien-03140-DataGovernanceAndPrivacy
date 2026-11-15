@@ -1,12 +1,14 @@
 # ============================================================
-# Group config — EDIT ME (one per group). Values here override
+# Individual config — values here override
 # the track defaults loaded from `track_config`.
 # ============================================================
-group_id: G01-T006                     # e.g. G07
-owner: "TODO: tên người ký duyệt (role)"   # mandatory for every Decision
-track_config: tracks/t02.yaml     # pick your challenge: tracks/t01.yaml ... tracks/t14.yaml
-track: t02                        # must match track_config
-input: fixtures/t02_raw_qc        # or data/real/... if your instructor provided a real pack
+group_id: IND-03140
+owner: "Nguyễn Viết Tiến - 03140"
+git_author_name: viettien161204
+git_author_email: nguyenviettien161204@gmail.com
+track_config: tracks/t01.yaml
+track: t01
+input: fixtures/t01_coverage
 output: out/
 seed: 42
 offline: true                     # demo/eval must not touch the network

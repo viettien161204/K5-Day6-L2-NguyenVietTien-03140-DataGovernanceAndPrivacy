@@ -1,0 +1,16 @@
+group_id: IND-03140
+owner: "Nguyễn Viết Tiến - 03140"
+git_author_name: viettien161204
+git_author_email: nguyenviettien161204@gmail.com
+track_config: tracks/t01.yaml
+track: t01
+input: fixtures/t01_coverage
+output: out/holdout
+seed: 42
+offline: true
+strict_provenance: true
+params:
+  candidate_file: holdout_candidates.csv
+  k: 6
+  budgets_to_try:
+  - 6
